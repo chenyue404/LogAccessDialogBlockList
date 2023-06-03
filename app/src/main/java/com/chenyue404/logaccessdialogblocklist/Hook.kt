@@ -1,7 +1,6 @@
 package com.chenyue404.logaccessdialogblocklist
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Handler
 import android.widget.Toast
 import de.robv.android.xposed.IXposedHookLoadPackage
@@ -21,7 +20,7 @@ class Hook : IXposedHookLoadPackage {
     companion object {
         const val PREF_NAME = "android"
         const val KEY = "key"
-        val pref: SharedPreferences? by lazy {
+        val pref: XSharedPreferences? by lazy {
             val pref = XSharedPreferences(BuildConfig.APPLICATION_ID, PREF_NAME)
             if (pref.file.canRead()) pref else null
         }
@@ -82,10 +81,11 @@ class Hook : IXposedHookLoadPackage {
                         val mPackageName = getObjectField(logAccessClient, "mPackageName") as String
                         log("mPackageName=$mPackageName")
 
+                        pref?.reload()
                         val stringSet = pref?.getStringSet(KEY, setOf())
-                        log(stringSet?.joinToString().toString())
+                        log(stringSet?.joinToString(",").toString())
                         if (stringSet?.any {
-                                mPackageName.contains(it, true)
+                                mPackageName.contains(it.trim(), true)
                             } == true) {
                             log("block: $mPackageName")
                             val mContext = (getObjectField(

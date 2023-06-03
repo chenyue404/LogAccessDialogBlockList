@@ -33,7 +33,7 @@ class MainActivity : Activity() {
             val set = etContent.text.toString()
                 .split(",")
                 .toMutableSet().onEach { it.trim() }
-            etContent.setText(set.joinToString())
+            etContent.setText(set.joinToString(","))
             sp?.edit {
                 putStringSet(Hook.KEY, set)
             }

@@ -11,6 +11,7 @@ import androidx.core.content.edit
 class MainActivity : Activity() {
 
     private val etContent: EditText by lazy { findViewById(R.id.etContent) }
+    private val etContentAllow: EditText by lazy { findViewById(R.id.etContentAllow) }
     private val btSave: Button by lazy { findViewById(R.id.btSave) }
     private val sp by lazy {
         try {
@@ -29,13 +30,19 @@ class MainActivity : Activity() {
         setContentView(R.layout.activity_main)
 
         etContent.setText(sp?.getStringSet(Hook.KEY, emptySet())?.joinToString())
+        etContentAllow.setText(sp?.getStringSet(Hook.KEY_ALLOW, emptySet())?.joinToString())
         btSave.setOnClickListener {
             val set = etContent.text.toString()
                 .split(",")
                 .toMutableSet().onEach { it.trim() }
             etContent.setText(set.joinToString(","))
+            val allowSet = etContentAllow.text.toString()
+                .split(",")
+                .toMutableSet().onEach { it.trim() }
+            etContentAllow.setText(allowSet.joinToString(","))
             sp?.edit {
                 putStringSet(Hook.KEY, set)
+                putStringSet(Hook.KEY_ALLOW, allowSet)
             }
             Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
         }

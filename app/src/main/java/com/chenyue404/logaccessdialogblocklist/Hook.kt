@@ -20,6 +20,7 @@ class Hook : IXposedHookLoadPackage {
     companion object {
         const val PREF_NAME = "android"
         const val KEY = "key"
+        const val KEY_ALLOW = "key_allow"
         val pref: XSharedPreferences? by lazy {
             val pref = XSharedPreferences(BuildConfig.APPLICATION_ID, PREF_NAME)
             if (pref.file.canRead()) pref else null
@@ -83,7 +84,12 @@ class Hook : IXposedHookLoadPackage {
 
                         pref?.reload()
                         val stringSet = pref?.getStringSet(KEY, setOf())
-                        log(stringSet?.joinToString(",").toString())
+                        val allowSet = pref?.getStringSet(KEY_ALLOW, setOf())
+                        log(
+                            "blockSet=${stringSet?.joinToString(",").toString()}\n" +
+                                    "allowSet=${allowSet?.joinToString(",").toString()}"
+                        )
+
                         if (stringSet?.any {
                                 mPackageName.contains(it.trim(), true)
                             } == true) {
@@ -102,6 +108,29 @@ class Hook : IXposedHookLoadPackage {
                             callMethod(
                                 param.thisObject,
                                 "onAccessDeclinedForClient",
+                                logAccessClient
+                            )
+                            param.result = null
+                        }
+
+                        if (allowSet?.any {
+                                mPackageName.contains(it.trim(), true)
+                            } == true) {
+                            log("Approved: $mPackageName")
+                            val mContext = (getObjectField(
+                                param.thisObject,
+                                "mContext"
+                            ) as Context).applicationContext
+                            Handler(mContext.mainLooper).post {
+                                Toast.makeText(
+                                    mContext,
+                                    "Approved LogAccessRequest of $mPackageName",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            callMethod(
+                                param.thisObject,
+                                "onAccessApprovedForClient",
                                 logAccessClient
                             )
                             param.result = null
